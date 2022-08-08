@@ -99,8 +99,6 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                 return Bitmap.CompressFormat.JPEG;
             case 1:
                 return Bitmap.CompressFormat.PNG;
-            case 2:
-                return Bitmap.CompressFormat.WEBP;
         }
     }
 
@@ -111,8 +109,6 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                 return "jpg";
             case 1:
                 return "png";
-            case 2:
-                return "webp";
         }
     }
 

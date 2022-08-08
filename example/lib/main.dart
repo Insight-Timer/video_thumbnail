@@ -29,13 +29,7 @@ class ThumbnailRequest {
   final int quality;
 
   const ThumbnailRequest(
-      {this.video,
-      this.thumbnailPath,
-      this.imageFormat,
-      this.maxHeight,
-      this.maxWidth,
-      this.timeMs,
-      this.quality});
+      {this.video, this.thumbnailPath, this.imageFormat, this.maxHeight, this.maxWidth, this.timeMs, this.quality});
 }
 
 class ThumbnailResult {
@@ -86,9 +80,7 @@ Future<ThumbnailResult> genThumbnail(ThumbnailRequest r) async {
   print("image size: $_imageDataSize");
 
   final _image = Image.memory(bytes);
-  _image.image
-      .resolve(ImageConfiguration())
-      .addListener(ImageStreamListener((ImageInfo info, bool _) {
+  _image.image.resolve(ImageConfiguration()).addListener(ImageStreamListener((ImageInfo info, bool _) {
     completer.complete(ThumbnailResult(
       image: _image,
       dataSize: _imageDataSize,
@@ -147,8 +139,7 @@ class _GenThumbnailImageState extends State<GenThumbnailImage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text(
-                    "Generating the thumbnail for: ${widget.thumbnailRequest.video}..."),
+                Text("Generating the thumbnail for: ${widget.thumbnailRequest.video}..."),
                 SizedBox(
                   height: 10.0,
                 ),
@@ -174,9 +165,8 @@ class DemoHome extends StatefulWidget {
 
 class _DemoHomeState extends State<DemoHome> {
   final _editNode = FocusNode();
-  final _video = TextEditingController(
-      text:
-          "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4");
+  final _video =
+      TextEditingController(text: "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4");
   ImageFormat _format = ImageFormat.JPEG;
   int _quality = 50;
   int _sizeH = 0;
@@ -184,6 +174,7 @@ class _DemoHomeState extends State<DemoHome> {
   int _timeMs = 0;
 
   GenThumbnailImage _futreImage;
+  final ImagePicker _picker = ImagePicker();
 
   String _tempDir;
 
@@ -208,8 +199,7 @@ class _DemoHomeState extends State<DemoHome> {
       ),
       Center(
         child: (_sizeH == 0)
-            ? const Text(
-                "Original of the video's height or scaled by the source aspect ratio")
+            ? const Text("Original of the video's height or scaled by the source aspect ratio")
             : Text("Max height: $_sizeH(px)"),
       ),
       Slider(
@@ -224,8 +214,7 @@ class _DemoHomeState extends State<DemoHome> {
       ),
       Center(
         child: (_sizeW == 0)
-            ? const Text(
-                "Original of the video's width or scaled by source aspect ratio")
+            ? const Text("Original of the video's width or scaled by source aspect ratio")
             : Text("Max width: $_sizeW(px)"),
       ),
       Slider(
@@ -267,48 +256,28 @@ class _DemoHomeState extends State<DemoHome> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Radio<ImageFormat>(
-                      groupValue: _format,
-                      value: ImageFormat.JPEG,
-                      onChanged: (v) => setState(() {
-                        _format = v;
-                        _editNode.unfocus();
-                      }),
-                    ),
-                    const Text("JPEG"),
-                  ]),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Radio<ImageFormat>(
-                      groupValue: _format,
-                      value: ImageFormat.PNG,
-                      onChanged: (v) => setState(() {
-                        _format = v;
-                        _editNode.unfocus();
-                      }),
-                    ),
-                    const Text("PNG"),
-                  ]),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Radio<ImageFormat>(
-                      groupValue: _format,
-                      value: ImageFormat.WEBP,
-                      onChanged: (v) => setState(() {
-                        _format = v;
-                        _editNode.unfocus();
-                      }),
-                    ),
-                    const Text("WebP"),
-                  ]),
+              Row(mainAxisAlignment: MainAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
+                Radio<ImageFormat>(
+                  groupValue: _format,
+                  value: ImageFormat.JPEG,
+                  onChanged: (v) => setState(() {
+                    _format = v;
+                    _editNode.unfocus();
+                  }),
+                ),
+                const Text("JPEG"),
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
+                Radio<ImageFormat>(
+                  groupValue: _format,
+                  value: ImageFormat.PNG,
+                  onChanged: (v) => setState(() {
+                    _format = v;
+                    _editNode.unfocus();
+                  }),
+                ),
+                const Text("PNG"),
+              ]),
             ],
           ),
         ),
@@ -379,8 +348,7 @@ class _DemoHomeState extends State<DemoHome> {
           children: <Widget>[
             FloatingActionButton(
               onPressed: () async {
-                File video =
-                    await ImagePicker.pickVideo(source: ImageSource.camera);
+                final video = await _picker.pickImage(source: ImageSource.camera);
                 setState(() {
                   _video.text = video.path;
                 });
@@ -393,8 +361,7 @@ class _DemoHomeState extends State<DemoHome> {
             ),
             FloatingActionButton(
               onPressed: () async {
-                File video =
-                    await ImagePicker.pickVideo(source: ImageSource.gallery);
+                final video = await _picker.pickVideo(source: ImageSource.gallery);
                 setState(() {
                   _video.text = video?.path;
                 });
