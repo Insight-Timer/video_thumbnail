@@ -3,6 +3,7 @@ package xyz.justsoft.video_thumbnail;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -25,6 +26,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import wseemann.media.FFmpegMediaMetadataRetriever;
 
 /**
  * VideoThumbnailPlugin
@@ -99,8 +101,6 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                 return Bitmap.CompressFormat.JPEG;
             case 1:
                 return Bitmap.CompressFormat.PNG;
-            case 2:
-                return Bitmap.CompressFormat.WEBP;
         }
     }
 
@@ -111,8 +111,6 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                 return "jpg";
             case 1:
                 return "png";
-            case 2:
-                return "webp";
         }
     }
 
@@ -210,22 +208,59 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
             int targetW, int timeMs) {
         Bitmap bitmap = null;
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        FFmpegMediaMetadataRetriever ffMpegRetriever = new FFmpegMediaMetadataRetriever();
+        boolean isHLS = false;
+
         try {
             if (video.startsWith("/")) {
                 setDataSource(video, retriever);
             } else if (video.startsWith("file://")) {
                 setDataSource(video.substring(7), retriever);
             } else {
-                retriever.setDataSource(video, (headers != null) ? headers : new HashMap<String, String>());
+                Uri url = Uri.parse(video);
+                String name = url.getLastPathSegment();
+                String extension = name.substring(name.lastIndexOf(".") + 1);
+
+                if(extension.equals("m3u8")) {
+                    isHLS = true;
+                }
+
+                if(isHLS) {
+                   ffMpegRetriever.setDataSource(video);
+                } else {
+                   retriever.setDataSource(video, (headers != null) ? headers : new HashMap<String, String>());
+                }
             }
 
             if (targetH != 0 || targetW != 0) {
                 if (android.os.Build.VERSION.SDK_INT >= 27 && targetH != 0 && targetW != 0) {
                     // API Level 27
-                    bitmap = retriever.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST,
-                            targetW, targetH);
+                    if(isHLS) {
+                      bitmap = ffMpegRetriever.getFrameAtTime();
+
+                        if (bitmap != null) {
+                            int width = bitmap.getWidth();
+                            int height = bitmap.getHeight();
+                            if (targetW == 0) {
+                                targetW = Math.round(((float) targetH / height) * width);
+                            }
+                            if (targetH == 0) {
+                                targetH = Math.round(((float) targetW / width) * height);
+                            }
+                            Log.d(TAG, String.format("original w:%d, h:%d => %d, %d", width, height, targetW, targetH));
+                            bitmap = Bitmap.createScaledBitmap(bitmap, targetW, targetH, true);
+                        }
+                    } else {
+                       bitmap = retriever.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST,
+                                targetW, targetH);
+                    }
                 } else {
-                    bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+                    if(isHLS) {
+                      bitmap = ffMpegRetriever.getFrameAtTime();
+                    } else {
+                       bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+                    }
+
                     if (bitmap != null) {
                         int width = bitmap.getWidth();
                         int height = bitmap.getHeight();
@@ -240,7 +275,11 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
                     }
                 }
             } else {
-                bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+               if(isHLS) {
+                   bitmap = ffMpegRetriever.getFrameAtTime();
+               } else {
+                  bitmap = retriever.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST);
+               }
             }
         } catch (IllegalArgumentException ex) {
             ex.printStackTrace();
@@ -250,6 +289,7 @@ public class VideoThumbnailPlugin implements FlutterPlugin, MethodCallHandler {
             ex.printStackTrace();
         } finally {
             try {
+                ffMpegRetriever.release();
                 retriever.release();
             } catch (RuntimeException ex) {
                 ex.printStackTrace();
