@@ -101,8 +101,8 @@ public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
 
     self.format = format
     self.quality = quality
-    self.maxWidth = maxw
-    self.maxHeight = maxh
+    self.maxWidth = maxw > 0 ? maxw : nil
+    self.maxHeight = maxh > 0 ? maxh : nil
     
     let isLocalFile = file.hasPrefix("file://") || file.hasPrefix("/");
 
