@@ -165,8 +165,9 @@ class DemoHome extends StatefulWidget {
 
 class _DemoHomeState extends State<DemoHome> {
   final _editNode = FocusNode();
-  final _video =
-      TextEditingController(text: "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4");
+  final _video = TextEditingController(
+      text:
+          "https://workshops.insighttimer.com/m1F2x8T5P1w8k4B4A4s6W4X4E2t3D7K4e8w1t9f0p6r9w3N8H6B8L5n8g7r2K1c9P0P1G9p3k1F6a4d5b9B1E0C2T4N2Y3D1m0Q7/marketplace/shop/products/LWA4e337enyGM9VnReuR/hls/index.m3u8");
   ImageFormat _format = ImageFormat.JPEG;
   int _quality = 50;
   int _sizeH = 0;
